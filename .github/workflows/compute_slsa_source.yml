@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: prov
-      uses: slsa-framework/source-actions/slsa_with_provenance@main
+      uses: puerco/source-actions/slsa_with_provenance@main
       with:
         allow-merge-commits: ${{inputs.allow-merge-commits}}
         build-from-source: ${{ inputs.build-from-source }}
