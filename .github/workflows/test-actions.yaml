@@ -187,3 +187,60 @@ jobs:
         env:
           OUTCOME: ${{ steps.wrong.outcome }}
           RESULT: ${{ steps.wrong.outputs.result }}
+
+  verify-vsa:
+    name: verify/vsa (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The SLSA source tool stores the VSA it issues for a commit in the
+      # commit's git note, next to the source provenance.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: puerco/lab
+          ref: e679f67df389afb2d81c6934572477cc597d71ec
+          path: lab
+          persist-credentials: false
+
+      - id: verify
+        uses: ./verify/vsa
+        with:
+          path: lab
+          commit: e679f67df389afb2d81c6934572477cc597d71ec
+          verifier: https://github.com/slsa-framework/source-actions=sigstore(identityMatch=prefix)::https://token.actions.githubusercontent.com::https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@
+          level: SLSA_SOURCE_LEVEL_1
+          resource: git+https://github.com/puerco/lab
+
+      - name: Outputs
+        shell: bash
+        run: |
+          test "${RESULT}" = PASS
+          test "${LEVELS}" = SLSA_SOURCE_LEVEL_1
+        env:
+          RESULT: ${{ steps.verify.outputs.result }}
+          LEVELS: ${{ steps.verify.outputs.levels }}
+
+      - name: A level the VSA does not reach fails, and says so
+        id: wrong
+        continue-on-error: true
+        uses: ./verify/vsa
+        with:
+          path: lab
+          commit: e679f67df389afb2d81c6934572477cc597d71ec
+          verifier: https://github.com/slsa-framework/source-actions=sigstore(identityMatch=prefix)::https://token.actions.githubusercontent.com::https://github.com/slsa-framework/source-actions/.github/workflows/compute_slsa_source.yml@
+          level: SLSA_SOURCE_LEVEL_3
+
+      - shell: bash
+        run: test "${OUTCOME}" = failure && test "${RESULT}" = FAIL
+        env:
+          OUTCOME: ${{ steps.wrong.outcome }}
+          RESULT: ${{ steps.wrong.outputs.result }}
