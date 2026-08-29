@@ -49,7 +49,7 @@ or by naming its identity in `signer`.
 | `require-signatures` | `--require-signatures` | Fail unless a signature verified |
 | `key` | `--key` | Public key files, one per line |
 | `builder`, `builders` | `--builder`, `--builders` | Builder bindings and registry files |
-| `level` | `--level` | Required SLSA build level, 1-3 (needs a slsa-verifier release after v0.0.1-alpha.2) |
+| `level` | `--level` | Required SLSA build level, 1-3 |
 | `spec` | `--spec` | SLSA spec version |
 | `controls` | `--controls` | User-supplied controls |
 | `skip-buildtype-checks` | `--skip-buildtype-checks` | Skip buildType checks with no expectation given |

@@ -74,7 +74,7 @@ jobs:
         id: release
         shell: bash
         run: |
-          VERSION=v0.0.1-alpha.2
+          VERSION=v0.0.1-alpha.3
           case "${RUNNER_OS}-${RUNNER_ARCH}" in
             Linux-X64) file="slsa-verifier-${VERSION}-linux-amd64" ;;
             Linux-ARM64) file="slsa-verifier-${VERSION}-linux-arm64" ;;
@@ -119,6 +119,68 @@ jobs:
           expected-source: github.com/carabiner-labs/slsa-verifier
           trusted-builders: https://github.com/carabiner-labs/slsa-verifier/.github/workflows/tests.yaml
           skip-buildtype-checks: true
+
+      - shell: bash
+        run: test "${OUTCOME}" = failure && test "${RESULT}" = FAIL
+        env:
+          OUTCOME: ${{ steps.wrong.outcome }}
+          RESULT: ${{ steps.wrong.outputs.result }}
+
+  verify-source:
+    name: verify/source (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A public repository whose commits carry source attestations in
+      # their git notes, stored by the SLSA source tool.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: puerco/lab
+          ref: e679f67df389afb2d81c6934572477cc597d71ec
+          path: lab
+          persist-credentials: false
+
+      - id: verify
+        uses: ./verify/source
+        with:
+          path: lab
+          commit: e679f67df389afb2d81c6934572477cc597d71ec
+          expected-repo: https://github.com/puerco/lab
+          expected-branch: refs/heads/master
+          official: true
+          level: 3
+          vsa: source.vsa.json
+
+      - name: Outputs
+        shell: bash
+        run: |
+          test "${RESULT}" = PASS
+          test "${LEVEL}" = 3
+          test -s "${VSA}"
+        env:
+          RESULT: ${{ steps.verify.outputs.result }}
+          LEVEL: ${{ steps.verify.outputs.level }}
+          VSA: ${{ steps.verify.outputs.vsa }}
+
+      - name: The wrong branch fails, and says so
+        id: wrong
+        continue-on-error: true
+        uses: ./verify/source
+        with:
+          path: lab
+          commit: e679f67df389afb2d81c6934572477cc597d71ec
+          expected-repo: https://github.com/puerco/lab
+          expected-branch: refs/heads/main
+          official: true
 
       - shell: bash
         run: test "${OUTCOME}" = failure && test "${RESULT}" = FAIL
