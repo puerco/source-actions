@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: Copyright 2026 The SLSA Authors
+# SPDX-License-Identifier: Apache-2.0
+---
+name: Test actions
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  install-verifier:
+    name: install/verifier (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: install
+        uses: ./install/verifier
+
+      - name: The installed binary is on the PATH and is the verified one
+        shell: bash
+        run: |
+          test -x "${INSTALLED}"
+          slsa-verifier --help >/dev/null
+          echo "installed ${VERSION} at ${INSTALLED}"
+        env:
+          INSTALLED: ${{ steps.install.outputs.path }}
+          VERSION: ${{ steps.install.outputs.version }}
+
+      - name: Verifying a release with the installed verifier
+        shell: bash
+        run: |
+          curl -sSfL -o attestations.jsonl \
+            "https://github.com/carabiner-labs/slsa-verifier/releases/download/${VERSION}/attestations.jsonl"
+          slsa-verifier build attestations.jsonl \
+            --require-signatures \
+            --signer "sigstore::https://token.actions.githubusercontent.com::https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml@refs/tags/${VERSION}" \
+            --param expected_source:github.com/carabiner-labs/slsa-verifier \
+            --param "trusted_builders:[https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml]" \
+            --skip-buildtype-checks
+        env:
+          VERSION: ${{ steps.install.outputs.version }}
+
+  verify-build:
+    name: verify/build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The verifier's own release provenance and binary are the fixture:
+      # a real tag build, signed by a real workflow.
+      - name: Fetch a release and its provenance
+        id: release
+        shell: bash
+        run: |
+          VERSION=v0.0.1-alpha.2
+          case "${RUNNER_OS}-${RUNNER_ARCH}" in
+            Linux-X64) file="slsa-verifier-${VERSION}-linux-amd64" ;;
+            Linux-ARM64) file="slsa-verifier-${VERSION}-linux-arm64" ;;
+            macOS-ARM64) file="slsa-verifier-${VERSION}-darwin-arm64" ;;
+            Windows-X64) file="slsa-verifier-${VERSION}-windows-amd64.exe" ;;
+            *) echo "::error::unsupported runner ${RUNNER_OS}-${RUNNER_ARCH}"; exit 1 ;;
+          esac
+          base="https://github.com/carabiner-labs/slsa-verifier/releases/download/${VERSION}"
+          curl -sSfL -o attestations.jsonl "${base}/attestations.jsonl"
+          curl -sSfL -o "${file}" "${base}/${file}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "artifact=${file}" >> "$GITHUB_OUTPUT"
+
+      - id: verify
+        uses: ./verify/build
+        with:
+          attestation: attestations.jsonl
+          artifacts: ${{ steps.release.outputs.artifact }}
+          expected-source: github.com/carabiner-labs/slsa-verifier
+          trusted-builders: https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml
+          signer: sigstore::https://token.actions.githubusercontent.com::https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml@refs/tags/${{ steps.release.outputs.version }}
+          skip-buildtype-checks: true
+          vsa: release.vsa.json
+
+      - name: Outputs
+        shell: bash
+        run: |
+          test "${RESULT}" = PASS
+          test "${LEVEL}" = 3
+          test -s "${VSA}"
+        env:
+          RESULT: ${{ steps.verify.outputs.result }}
+          LEVEL: ${{ steps.verify.outputs.level }}
+          VSA: ${{ steps.verify.outputs.vsa }}
+
+      - name: A wrong builder fails, and says so
+        id: wrong
+        continue-on-error: true
+        uses: ./verify/build
+        with:
+          attestation: attestations.jsonl
+          expected-source: github.com/carabiner-labs/slsa-verifier
+          trusted-builders: https://github.com/carabiner-labs/slsa-verifier/.github/workflows/tests.yaml
+          skip-buildtype-checks: true
+
+      - shell: bash
+        run: test "${OUTCOME}" = failure && test "${RESULT}" = FAIL
+        env:
+          OUTCOME: ${{ steps.wrong.outcome }}
+          RESULT: ${{ steps.wrong.outputs.result }}
