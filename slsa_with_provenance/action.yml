@@ -33,9 +33,9 @@ runs:
       shell: bash
 
     # This needs to persis its credentials to store the attestations
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       id: checkout_sourcetool_code
       if: inputs.build-from-source == 'true'
       with:
@@ -47,7 +47,7 @@ runs:
 
     - id: go_versions
       if: inputs.build-from-source == 'true'
-      uses: carabiner-dev/actions/go/versions@94f29392187fe5082d1195a7d4cae3a7ddf09d9c # v1.2.1
+      uses: carabiner-dev/actions/go/versions@32587e82f960d49b36101e8c45d1956e511965d3 # v1.2.9
       with:
         go-mod-path: ${{ github.workspace }}/.bin/build/go.mod
 
@@ -90,7 +90,7 @@ runs:
 
     - id: verify_binary
       if: inputs.build-from-source == 'false'
-      uses: carabiner-dev/actions/ampel/verify@94f29392187fe5082d1195a7d4cae3a7ddf09d9c # v1.2.1
+      uses: carabiner-dev/actions/ampel/verify@32587e82f960d49b36101e8c45d1956e511965d3 # v1.2.9
       env:
         # This is the SLSA builder ID we will verify before running the sourcetool binary
         AMPEL_BUILDERID: "https://github.com/slsa-framework/source-tool/.github/workflows/release.yaml"
