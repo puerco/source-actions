@@ -1,7 +1,7 @@
 # verify/build
 
 Verifies a SLSA build provenance attestation with
-[slsa-verifier](https://github.com/carabiner-labs/slsa-verifier) `build`:
+[slsa-verifier](https://github.com/slsa-framework/verifier) `build`:
 the signature, the identity of the builder that signed it, the artifacts
 it is about, and the expectations you state.
 

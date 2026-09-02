@@ -13,7 +13,7 @@ inputs:
   version:
     description: 'slsa-verifier release to install, e.g. v0.1.0'
     required: false
-    default: 'v0.0.1-alpha.3'
+    default: 'v0.1.0-alpha.1'
   install-dir:
     description: 'Directory to install into (the binary lands in its bin/)'
     required: false
@@ -21,7 +21,7 @@ inputs:
   repo:
     description: 'GitHub repository publishing the slsa-verifier releases'
     required: false
-    default: 'carabiner-labs/slsa-verifier'
+    default: 'slsa-framework/verifier'
   verify:
     description: >
       Verify the downloaded release against its provenance with the

@@ -1,6 +1,6 @@
 # install/verifier
 
-Installs [slsa-verifier](https://github.com/carabiner-labs/slsa-verifier)
+Installs [slsa-verifier](https://github.com/slsa-framework/verifier)
 into the runner and adds it to the `PATH`, verifying the release before
 trusting it.
 
@@ -35,7 +35,7 @@ actions.
 |---|---|---|
 | `version` | the release the action pins | Release tag to install |
 | `install-dir` | `$HOME/.slsa` | Install directory; the binary lands in its `bin/` |
-| `repo` | `carabiner-labs/slsa-verifier` | Repository publishing the releases |
+| `repo` | `slsa-framework/verifier` | Repository publishing the releases |
 | `verify` | `true` | Verify the release against its provenance before installing |
 
 ## Outputs

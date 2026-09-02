@@ -44,12 +44,12 @@ jobs:
         shell: bash
         run: |
           curl -sSfL -o attestations.jsonl \
-            "https://github.com/carabiner-labs/slsa-verifier/releases/download/${VERSION}/attestations.jsonl"
+            "https://github.com/slsa-framework/verifier/releases/download/${VERSION}/attestations.jsonl"
           slsa-verifier build attestations.jsonl \
             --require-signatures \
-            --signer "sigstore::https://token.actions.githubusercontent.com::https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml@refs/tags/${VERSION}" \
-            --param expected_source:github.com/carabiner-labs/slsa-verifier \
-            --param "trusted_builders:[https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml]" \
+            --signer "sigstore::https://token.actions.githubusercontent.com::https://github.com/slsa-framework/verifier/.github/workflows/release.yaml@refs/tags/${VERSION}" \
+            --param expected_source:github.com/slsa-framework/verifier \
+            --param "trusted_builders:[https://github.com/slsa-framework/verifier/.github/workflows/release.yaml]" \
             --skip-buildtype-checks
         env:
           VERSION: ${{ steps.install.outputs.version }}
@@ -74,7 +74,7 @@ jobs:
         id: release
         shell: bash
         run: |
-          VERSION=v0.0.1-alpha.3
+          VERSION=v0.1.0-alpha.1
           case "${RUNNER_OS}-${RUNNER_ARCH}" in
             Linux-X64) file="slsa-verifier-${VERSION}-linux-amd64" ;;
             Linux-ARM64) file="slsa-verifier-${VERSION}-linux-arm64" ;;
@@ -82,7 +82,7 @@ jobs:
             Windows-X64) file="slsa-verifier-${VERSION}-windows-amd64.exe" ;;
             *) echo "::error::unsupported runner ${RUNNER_OS}-${RUNNER_ARCH}"; exit 1 ;;
           esac
-          base="https://github.com/carabiner-labs/slsa-verifier/releases/download/${VERSION}"
+          base="https://github.com/slsa-framework/verifier/releases/download/${VERSION}"
           curl -sSfL -o attestations.jsonl "${base}/attestations.jsonl"
           curl -sSfL -o "${file}" "${base}/${file}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
@@ -93,9 +93,9 @@ jobs:
         with:
           attestation: attestations.jsonl
           artifacts: ${{ steps.release.outputs.artifact }}
-          expected-source: github.com/carabiner-labs/slsa-verifier
-          trusted-builders: https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml
-          signer: sigstore::https://token.actions.githubusercontent.com::https://github.com/carabiner-labs/slsa-verifier/.github/workflows/release.yaml@refs/tags/${{ steps.release.outputs.version }}
+          expected-source: github.com/slsa-framework/verifier
+          trusted-builders: https://github.com/slsa-framework/verifier/.github/workflows/release.yaml
+          signer: sigstore::https://token.actions.githubusercontent.com::https://github.com/slsa-framework/verifier/.github/workflows/release.yaml@refs/tags/${{ steps.release.outputs.version }}
           skip-buildtype-checks: true
           vsa: release.vsa.json
 
@@ -116,8 +116,8 @@ jobs:
         uses: ./verify/build
         with:
           attestation: attestations.jsonl
-          expected-source: github.com/carabiner-labs/slsa-verifier
-          trusted-builders: https://github.com/carabiner-labs/slsa-verifier/.github/workflows/tests.yaml
+          expected-source: github.com/slsa-framework/verifier
+          trusted-builders: https://github.com/slsa-framework/verifier/.github/workflows/go-build-and-test.yaml
           skip-buildtype-checks: true
 
       - shell: bash

@@ -1,7 +1,7 @@
 # verify/vsa
 
 Verifies a SLSA Verification Summary Attestation with
-[slsa-verifier](https://github.com/carabiner-labs/slsa-verifier) `vsa`:
+[slsa-verifier](https://github.com/slsa-framework/verifier) `vsa`:
 its signature, the verifier that issued it and the identity bound to
 that verifier, the subjects it is about, and what it states.
 

@@ -1,7 +1,7 @@
 # verify/source
 
 Verifies a SLSA source provenance attestation with
-[slsa-verifier](https://github.com/carabiner-labs/slsa-verifier) `source`:
+[slsa-verifier](https://github.com/slsa-framework/verifier) `source`:
 its signature, the repository and branch (or tag) it is about, and the
 SLSA source level it reaches.
 

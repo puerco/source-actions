@@ -98,11 +98,11 @@ inputs:
   version:
     description: 'slsa-verifier release to use'
     required: false
-    default: 'v0.0.1-alpha.3'
+    default: 'v0.1.0-alpha.1'
   repo:
     description: 'GitHub repository publishing the slsa-verifier releases'
     required: false
-    default: 'carabiner-labs/slsa-verifier'
+    default: 'slsa-framework/verifier'
 
 outputs:
   result:

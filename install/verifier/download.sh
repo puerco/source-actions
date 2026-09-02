@@ -17,12 +17,12 @@
 # requested tag).
 set -euo pipefail
 
-DEFAULT_VERSION="v0.0.1-alpha.3"
+DEFAULT_VERSION="v0.1.0-alpha.1"
 RELEASE_WORKFLOW=".github/workflows/release.yaml"
 ISSUER="https://token.actions.githubusercontent.com"
 
 VERSION="${VERSION:-$DEFAULT_VERSION}"
-REPO="${REPO:-carabiner-labs/slsa-verifier}"
+REPO="${REPO:-slsa-framework/verifier}"
 VERIFY="${VERIFY:-true}"
 
 log() { echo "$*" >&2; }
